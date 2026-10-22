@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NorthernServices | Admin CMS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            400: '#00e699',
+                            500: '#00b386',
+                            teal: '#14b8a6',
+                            cyan: '#00d2ff',
+                        },
+                        darkbg: '#090d16',
+                        darkcard: 'rgba(15, 23, 42, 0.75)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #090d16;
+            color: #f1f5f9;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(13, 20, 36, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 230, 153, 0.35);
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00e699;
+        }
+
+        /* Canvas Ambient Aurora */
+        #aurora-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Toast Popup Animation */
+        #toast {
+            transform: translateY(100px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-brand-400 selection:text-slate-950 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- CANVAS BACKGROUND -->
+    <canvas id="aurora-canvas"></canvas>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 glass-panel px-5 py-3.5 rounded-xl border border-brand-400/40 text-white text-xs font-mono flex items-center gap-3 shadow-2xl shadow-brand-400/20">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-brand-400 text-sm"></i>
+        <span id="toast-msg">Action completed successfully.</span>
+    </div>
+
+    <!-- MAIN ROOT WRAPPER -->
+    <div class="relative z-10 flex-1 flex flex-col">
+
+        <!-- HEADER BAR -->
+        <header class="glass-panel border-b border-slate-800 sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-500 to-brand-cyan p-0.5 shadow-md">
+                        <div class="w-full h-full bg-slate-950 rounded-[6px] flex items-center justify-center">
+                            <span class="font-extrabold text-xs text-brand-400 font-mono">NS</span>
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-sm text-white tracking-tight flex items-center gap-2">
+                            Northern<span class="text-brand-400">Services</span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Admin Control CMS</span>
+                        </h1>
+                    </div>
+                </div>
+
+                <!-- Top Right Actions -->
+                <div class="flex items-center gap-3">
+                    <div id="auth-status-pill" class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-slate-500" id="session-dot"></span>
+                        <span class="text-[11px] font-mono text-slate-400" id="session-text">Checking Session...</span>
+                    </div>
+                    <button id="logout-btn" onclick="handleLogout()" class="hidden px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-mono text-slate-300 transition-colors">
+                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Logout
+                    </button>
+                </div>
+
+            </div>
+        </header>
+
+        <!-- CONTENT BODY -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+
+            <!-- ================= LOGIN SCREEN ================= -->
+            <div id="login-screen" class="max-w-md mx-auto py-12">
+                <div class="glass-card p-8 rounded-2xl border border-slate-800 space-y-6">
+                    <div class="text-center space-y-2">
+                        <div class="w-12 h-12 rounded-xl bg-brand-400/10 border border-brand-400/30 text-brand-400 mx-auto flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white">Admin Authentication</h2>
+                        <p class="text-xs text-slate-400">Sign in to add, modify, or remove NorthernServices projects.</p>
+                    </div>
+
+                    <form onsubmit="handleLogin(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-mono text-slate-400 mb-1">Admin Username</label>
+                            <input type="text" id="login-user" required placeholder="Username" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-400">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-slate-400 mb-1">Passcode / Password</label>
+                            <input type="password" id="login-pass" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-brand-400">
+                        </div>
+
+                        <button type="submit" id="login-submit-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-teal text-slate-950 font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity">
+                            Sign In
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ================= DASHBOARD PANEL ================= -->
+            <div id="dashboard-panel" class="hidden space-y-8">
+                
+                <!-- Top Action Bar & Stat Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] font-mono uppercase text-slate-400">Total Projects</div>
+                            <div class="text-2xl font-extrabold text-white mt-1" id="stat-total">0</div>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-brand-400 text-lg">
+                            <i class="fa-solid fa-folder-tree"></i>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] font-mono uppercase text-emerald-400">Public Live</div>
+                            <div class="text-2xl font-extrabold text-white mt-1" id="stat-public">0</div>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-lg">
+                            <i class="fa-solid fa-globe"></i>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] font-mono uppercase text-amber-400">Private / Internal</div>
+                            <div class="text-2xl font-extrabold text-white mt-1" id="stat-private">0</div>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-amber-950/40 border border-amber-500/30 flex items-center justify-center text-amber-400 text-lg">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                    </div>
+
+                    <!-- Data Actions -->
+                    <div class="glass-card p-5 rounded-2xl border border-slate-800 flex flex-col justify-between gap-2">
+                        <div class="text-[10px] font-mono uppercase text-slate-400">Quick Data Sync</div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="exportJSON()" class="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-mono text-slate-200 transition-colors flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-download text-brand-400"></i> Export JSON
+                            </button>
+                            <button onclick="triggerImport()" class="flex-1 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] font-mono text-slate-200 transition-colors flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-upload text-brand-cyan"></i> Import
+                            </button>
+                            <input type="file" id="import-file-input" class="hidden" accept=".json" onchange="importJSON(event)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Grid: Form on Left, List on Right -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    
+                    <!-- ADD / EDIT PROJECT FORM (5 Columns) -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                                <h3 class="font-bold text-base text-white flex items-center gap-2" id="form-title">
+                                    <i class="fa-solid fa-plus-circle text-brand-400"></i> Add New Project
+                                </h3>
+                                <button onclick="resetForm()" id="cancel-edit-btn" class="hidden text-xs text-slate-400 hover:text-white font-mono">Cancel Edit</button>
+                            </div>
+
+                            <form onsubmit="saveProject(event)" class="space-y-4">
+                                <input type="hidden" id="project-id">
+
+                                <div>
+                                    <label class="block text-[11px] font-mono text-slate-400 mb-1">Project Name *</label>
+                                    <input type="text" id="project-name" required placeholder="e.g. Golf Society Scorer" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-mono text-slate-400 mb-1">Category</label>
+                                        <select id="project-category" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                                            <option value="Web App">Web Application</option>
+                                            <option value="Game">Web Game</option>
+                                            <option value="Digital Tool">Digital Tool</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-mono text-slate-400 mb-1">Visibility</label>
+                                        <select id="project-visibility" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                                            <option value="public">Public / Live</option>
+                                            <option value="private">Private / Internal</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-mono text-slate-400 mb-1">Description *</label>
+                                    <textarea id="project-desc" rows="3" required placeholder="Short summary of what this app or tool does..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-400"></textarea>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] font-mono text-slate-400 mb-1">Live URL (Optional)</label>
+                                        <input type="url" id="project-url" placeholder="https://..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-mono text-slate-400 mb-1">Status Badge</label>
+                                        <select id="project-status" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                                            <option value="Live & Public">Live & Public</option>
+                                            <option value="In Development">In Development</option>
+                                            <option value="Private / Internal">Private / Internal</option>
+                                            <option value="Private Client App">Private Client App</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-mono text-slate-400 mb-1">Tech Stack Tags (Comma separated)</label>
+                                    <input type="text" id="project-tags" placeholder="React, Node.js, Tailwind, SQLite" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-brand-400">
+                                </div>
+
+                                <div class="pt-2 flex gap-3">
+                                    <button type="submit" id="submit-btn" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-teal text-slate-950 font-bold text-xs uppercase tracking-wider hover:opacity-90 transition-opacity">
+                                        Save Project
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- PROJECT TABLE & PREVIEW DRAWER (7 Columns) -->
+                    <div class="lg:col-span-7 space-y-6">
+                        
+                        <!-- Project List Table -->
+                        <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                                    <i class="fa-solid fa-list-check text-brand-cyan"></i> Project Directory
+                                </h3>
+                                <span class="text-[11px] font-mono text-slate-400" id="project-count-pill">0 Total</span>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="border-b border-slate-800 text-slate-400 font-mono text-[11px]">
+                                            <th class="pb-2">Name</th>
+                                            <th class="pb-2">Type</th>
+                                            <th class="pb-2">Visibility</th>
+                                            <th class="pb-2 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="project-table-body" class="divide-y divide-slate-800/60">
+                                        <!-- Dynamically populated -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Live Public Preview Card Drawer -->
+                        <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+                            <div class="text-[11px] font-mono text-brand-400 uppercase tracking-wider flex items-center justify-between">
+                                <span>// Live Landing Page Preview Slot</span>
+                                <span class="text-slate-500">How visitors see this item</span>
+                            </div>
+                            <div id="live-preview-box" class="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
+                                <!-- Dynamic Preview Slot -->
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- SCRIPT CONNECTING TO EXPRESS BACKEND API -->
+    <script>
+        let projects = [];
+
+        const TOKEN_KEY = 'token';
+
+        function getToken() {
+            return localStorage.getItem(TOKEN_KEY);
+        }
+
+        function clearToken() {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem('adminToken'); // remove key used by older builds
+        }
+
+        // Attaches the JWT to protected requests and logs out on a dead token.
+        async function authFetch(url, options = {}) {
+            const token = getToken();
+            const headers = new Headers(options.headers || {});
+
+            if (token) headers.set('Authorization', `Bearer ${token}`);
+
+            const res = await fetch(url, { ...options, headers });
+
+            if (res.status === 401 || res.status === 403) {
+                clearToken();
+                setAuthenticatedState(false);
+            }
+
+            return res;
+        }
+
+        // --- Toast System ---
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.textContent = msg;
+            toastIcon.className = isError ? 'fa-solid fa-circle-exclamation text-rose-400 text-sm' : 'fa-solid fa-circle-check text-brand-400 text-sm';
+            
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // --- Initial Load & Auth Check ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initAuroraCanvas();
+            checkAuthSession();
+        });
+
+        async function checkAuthSession() {
+            if (!getToken()) {
+                setAuthenticatedState(false);
+                return;
+            }
+
+            await loadProjects();
+        }
+
+        function setAuthenticatedState(isAuth) {
+            const loginScreen = document.getElementById('login-screen');
+            const dashboardPanel = document.getElementById('dashboard-panel');
+            const logoutBtn = document.getElementById('logout-btn');
+            const sessionDot = document.getElementById('session-dot');
+            const sessionText = document.getElementById('session-text');
+
+            if (isAuth) {
+                loginScreen.classList.add('hidden');
+                dashboardPanel.classList.remove('hidden');
+                logoutBtn.classList.remove('hidden');
+                sessionDot.className = 'w-2 h-2 rounded-full bg-brand-400';
+                sessionText.textContent = 'Admin Authenticated';
+            } else {
+                loginScreen.classList.remove('hidden');
+                dashboardPanel.classList.add('hidden');
+                logoutBtn.classList.add('hidden');
+                sessionDot.className = 'w-2 h-2 rounded-full bg-amber-500';
+                sessionText.textContent = 'Logged Out';
+            }
+        }
+
+        // --- Auth Handlers ---
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-user').value;
+            const password = document.getElementById('login-pass').value;
+            const submitBtn = document.getElementById('login-submit-btn');
+
+            submitBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (res.ok && data.token) {
+                    localStorage.setItem(TOKEN_KEY, data.token);
+                    document.getElementById('login-pass').value = '';
+                    showToast('Welcome back, Admin!');
+                    await loadProjects();
+                } else {
+                    showToast(data.error || 'Invalid credentials', true);
+                }
+            } catch (err) {
+                showToast('Login request failed. Server error.', true);
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        function handleLogout() {
+            clearToken();
+            projects = [];
+            resetForm();
+            renderDashboard();
+            setAuthenticatedState(false);
+            showToast('Logged out successfully.');
+        }
+
+        // --- Fetch & Render Projects ---
+        async function loadProjects() {
+            // If no token exists, don't even bother hitting the server
+            if (!getToken()) {
+                setAuthenticatedState(false);
+                return;
+            }
+
+            try {
+                const res = await authFetch('/api/admin/projects/getProjects');
+
+                if (!res.ok) {
+                    // 401/403 already switched the UI back to the login screen
+                    if (res.status !== 401 && res.status !== 403) {
+                        setAuthenticatedState(true);
+                        showToast('Failed to load projects from server.', true);
+                    }
+                    return;
+                }
+
+                projects = await res.json();
+                setAuthenticatedState(true);
+                renderDashboard();
+            } catch (err) {
+                showToast('Failed to load projects from server.', true);
+            }
+        }
+
+        function renderDashboard() {
+            const total = projects.length;
+            const publicCount = projects.filter(p => p.visibility === 'public').length;
+            const privateCount = projects.filter(p => p.visibility === 'private').length;
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-public').textContent = publicCount;
+            document.getElementById('stat-private').textContent = privateCount;
+            document.getElementById('project-count-pill').textContent = `${total} Total Items`;
+
+            const tbody = document.getElementById('project-table-body');
+            tbody.innerHTML = '';
+
+            if (projects.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center text-slate-500 font-mono text-xs">No projects found. Add one on the left!</td></tr>`;
+            }
+
+            projects.forEach(p => {
+                const tagsList = Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? JSON.parse(p.tags || '[]') : []);
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/50 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-3 font-semibold text-white">
+                        ${p.name}
+                        ${p.url ? `<br><a href="${p.url}" target="_blank" class="text-[10px] text-brand-400 font-mono hover:underline">${p.url}</a>` : ''}
+                    </td>
+                    <td class="py-3 font-mono text-slate-400 text-[11px]">${p.category}</td>
+                    <td class="py-3">
+                        <button onclick="toggleVisibility('${p.id}')" class="text-[10px] font-mono px-2 py-0.5 rounded-full border ${p.visibility === 'public' ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30' : 'bg-amber-950/40 text-amber-400 border-amber-500/30'}">
+                            ${p.visibility === 'public' ? '<i class="fa-solid fa-globe mr-1"></i> Public' : '<i class="fa-solid fa-lock mr-1"></i> Private'}
+                        </button>
+                    </td>
+                    <td class="py-3 text-right space-x-2">
+                        <button onclick="editProject('${p.id}')" class="p-1.5 text-slate-400 hover:text-brand-cyan transition-colors" title="Edit">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="deleteProject('${p.id}')" class="p-1.5 text-slate-400 hover:text-rose-400 transition-colors" title="Delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            renderPreview(projects[0] || null);
+        }
+
+        function renderPreview(p) {
+            const previewBox = document.getElementById('live-preview-box');
+            if (!p) {
+                previewBox.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">No projects available for preview.</p>`;
+                return;
+            }
+
+            const tagsList = Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? JSON.parse(p.tags || '[]') : []);
+
+            previewBox.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full ${p.visibility === 'public' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'}">
+                            ${p.status || 'Active'}
+                        </span>
+                        <span class="text-[10px] font-mono text-slate-400">${p.category}</span>
+                    </div>
+                    <h4 class="text-base font-bold text-white">${p.name}</h4>
+                    <p class="text-xs text-slate-300">${p.desc || p.description || ''}</p>
+                    <div class="flex flex-wrap gap-1.5 pt-1">
+                        ${tagsList.map(t => `<span class="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">${t}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Save / Update Project ---
+        async function saveProject(e) {
+            e.preventDefault();
+            const id = document.getElementById('project-id').value;
+            const name = document.getElementById('project-name').value;
+            const category = document.getElementById('project-category').value;
+            const visibility = document.getElementById('project-visibility').value;
+            const desc = document.getElementById('project-desc').value;
+            const url = document.getElementById('project-url').value;
+            const status = document.getElementById('project-status').value;
+            const tagsRaw = document.getElementById('project-tags').value;
+            const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+            const payload = { name, category, visibility, desc, url, status, tags };
+
+            try {
+                let res;
+                if (id) {
+                    res = await authFetch(`/api/admin/projects/sendProjects/${encodeURIComponent(id)}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    res = await authFetch('/api/admin/projects/sendProjects', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                if (res.ok) {
+                    showToast(id ? 'Project updated successfully!' : 'New project created!');
+                    resetForm();
+                    await loadProjects();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    if (res.status !== 401 && res.status !== 403) {
+                        showToast(err.error || 'Failed to save project.', true);
+                    }
+                }
+            } catch (err) {
+                showToast('Server connection error.', true);
+            }
+        }
+
+        // --- Edit Project ---
+        function editProject(id) {
+            const p = projects.find(item => String(item.id) === String(id));
+            if (!p) return;
+
+            const tagsList = Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? JSON.parse(p.tags || '[]') : []);
+
+            document.getElementById('project-id').value = p.id;
+            document.getElementById('project-name').value = p.name;
+            document.getElementById('project-category').value = p.category;
+            document.getElementById('project-visibility').value = p.visibility;
+            document.getElementById('project-desc').value = p.desc || p.description || '';
+            document.getElementById('project-url').value = p.url || '';
+            document.getElementById('project-status').value = p.status || 'Live & Public';
+            document.getElementById('project-tags').value = tagsList.join(', ');
+
+            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-pen-to-square text-brand-cyan"></i> Edit Project`;
+            document.getElementById('submit-btn').textContent = 'Update Project';
+            document.getElementById('cancel-edit-btn').classList.remove('hidden');
+
+            renderPreview(p);
+        }
+
+        function resetForm() {
+            document.getElementById('project-id').value = '';
+            document.getElementById('project-name').value = '';
+            document.getElementById('project-category').value = 'Web App';
+            document.getElementById('project-visibility').value = 'public';
+            document.getElementById('project-desc').value = '';
+            document.getElementById('project-url').value = '';
+            document.getElementById('project-status').value = 'Live & Public';
+            document.getElementById('project-tags').value = '';
+
+            document.getElementById('form-title').innerHTML = `<i class="fa-solid fa-plus-circle text-brand-400"></i> Add New Project`;
+            document.getElementById('submit-btn').textContent = 'Save Project';
+            document.getElementById('cancel-edit-btn').classList.add('hidden');
+        }
+
+        // --- Delete Project ---
+        async function deleteProject(id) {
+            if (!confirm('Are you sure you want to delete this project?')) return;
+
+            try {
+                const res = await authFetch(`/api/admin/projects/${encodeURIComponent(id)}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showToast('Project deleted.');
+                    await loadProjects();
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    if (res.status !== 401 && res.status !== 403) {
+                        showToast(err.error || 'Failed to delete project.', true);
+                    }
+                }
+            } catch (err) {
+                showToast('Server connection error.', true);
+            }
+        }
+
+        // --- Quick Toggle Visibility ---
+        async function toggleVisibility(id) {
+            const p = projects.find(item => String(item.id) === String(id));
+            if (!p) return;
+
+            const newVisibility = p.visibility === 'public' ? 'private' : 'public';
+            const tagsList = Array.isArray(p.tags) ? p.tags : (typeof p.tags === 'string' ? JSON.parse(p.tags || '[]') : []);
+
+            try {
+                const res = await authFetch(`/api/admin/projects/sendProjects/${encodeURIComponent(id)}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: p.name,
+                        category: p.category,
+                        visibility: newVisibility,
+                        desc: p.desc || p.description || '',
+                        url: p.url || '',
+                        status: p.status || 'Live & Public',
+                        tags: tagsList
+                    })
+                });
+
+                if (res.ok) {
+                    showToast(`Visibility set to ${newVisibility}.`);
+                    await loadProjects();
+                } else {
+                    showToast('Failed to update visibility.', true);
+                }
+            } catch (err) {
+                showToast('Server connection error.', true);
+            }
+        }
+
+        // --- Export / Import JSON ---
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projects, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", "northernservices_projects.json");
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+            showToast('Exported projects JSON.');
+        }
+
+        function triggerImport() {
+            document.getElementById('import-file-input').click();
+        }
+
+        function importJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                try {
+                    const importedData = JSON.parse(evt.target.result);
+                    if (Array.isArray(importedData)) {
+                        let imported = 0;
+
+                        for (const item of importedData) {
+                            const res = await authFetch('/api/admin/projects/sendProjects', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    ...item,
+                                    desc: item.desc || item.description || ''
+                                })
+                            });
+
+                            if (res.status === 401 || res.status === 403) break;
+                            if (res.ok) imported++;
+                        }
+
+                        showToast(`Imported ${imported} project(s) into server!`);
+                        await loadProjects();
+                    } else {
+                        showToast('Invalid JSON format. Expected array.', true);
+                    }
+                } catch (err) {
+                    showToast('Error reading JSON file.', true);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Canvas Aurora Effect ---
+        function initAuroraCanvas() {
+            const canvas = document.getElementById('aurora-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            let step = 0;
+            function draw() {
+                step += 0.005;
+                ctx.clearRect(0, 0, width, height);
+
+                const grad1 = ctx.createRadialGradient(
+                    width * 0.2 + Math.sin(step) * 100, 
+                    height * 0.3 + Math.cos(step * 0.8) * 80, 
+                    50, 
+                    width * 0.2, 
+                    height * 0.3, 
+                    width * 0.5
+                );
+                grad1.addColorStop(0, 'rgba(0, 230, 153, 0.12)');
+                grad1.addColorStop(1, 'rgba(9, 13, 22, 0)');
+
+                const grad2 = ctx.createRadialGradient(
+                    width * 0.8 + Math.cos(step * 0.7) * 120, 
+                    height * 0.7 + Math.sin(step * 0.9) * 90, 
+                    50, 
+                    width * 0.8, 
+                    height * 0.7, 
+                    width * 0.5
+                );
+                grad2.addColorStop(0, 'rgba(0, 210, 255, 0.1)');
+                grad2.addColorStop(1, 'rgba(9, 13, 22, 0)');
+
+                ctx.fillStyle = grad1;
+                ctx.fillRect(0, 0, width, height);
+
+                ctx.fillStyle = grad2;
+                ctx.fillRect(0, 0, width, height);
+
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+    </script>
+</body>
+</html>

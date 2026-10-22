@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NorthernServices | Digital Studio & Portfolio Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            400: '#00e699',
+                            500: '#00b386',
+                            teal: '#14b8a6',
+                            cyan: '#00d2ff',
+                        },
+                        darkbg: '#0a0f18',
+                        darkcard: 'rgba(15, 23, 42, 0.7)'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styling & Glassmorphism */
+        body {
+            background-color: #0a0f18;
+            color: #f1f5f9;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(13, 20, 36, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card:hover {
+            border-color: rgba(0, 230, 153, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 14px 35px -10px rgba(0, 230, 153, 0.2);
+        }
+
+        .glass-nav {
+            background: rgba(10, 15, 24, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0f18;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00e699;
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #00e699 0%, #00d2ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Aurora Fullscreen Background Canvas */
+        #aurora-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* View Switching Transitions */
+        .view-section {
+            display: none;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        .view-section.active-view {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Nav active buttons */
+        .nav-btn.active {
+            color: #00e699;
+            background: rgba(0, 230, 153, 0.12);
+            border-color: rgba(0, 230, 153, 0.3);
+            box-shadow: 0 0 15px rgba(0, 230, 153, 0.15);
+        }
+
+        /* Filter Tab Buttons */
+        .filter-tab.active-filter {
+            background: rgba(0, 230, 153, 0.2);
+            color: #00e699;
+            border-color: rgba(0, 230, 153, 0.4);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-brand-400 selection:text-slate-950 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+    <!-- CONTINUOUS ANIMATED AURORA CANVAS BACKGROUND -->
+    <canvas id="aurora-canvas"></canvas>
+
+    <!-- NAVIGATION HEADER -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-nav">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Brand Logo -->
+                <button onclick="switchView('about')" class="flex items-center gap-3 group text-left">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-500 via-brand-teal to-brand-cyan p-0.5 shadow-lg shadow-brand-400/20 group-hover:scale-105 transition-transform">
+                        <div class="w-full h-full bg-darkbg rounded-[10px] flex items-center justify-center">
+                            <span class="font-extrabold text-sm text-brand-400 font-mono tracking-tighter">N</span>
+                            <span class="font-extrabold text-sm text-brand-cyan font-mono tracking-tighter">S</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-bold text-base tracking-tight text-white flex items-center gap-1">
+                            Northern<span class="text-brand-400">Services</span>
+                        </span>
+                        <span class="text-[9px] font-mono tracking-widest text-slate-400 uppercase">Northern Ireland</span>
+                    </div>
+                </button>
+
+                <!-- Navigation Tabs -->
+                <nav class="flex items-center space-x-1 sm:space-x-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800/80">
+                    <button onclick="switchView('about')" id="nav-about" class="nav-btn active text-xs font-medium px-3.5 sm:px-5 py-2 rounded-xl border border-transparent text-slate-300 hover:text-white transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-compass text-xs"></i>
+                        <span>About</span>
+                    </button>
+                    <button onclick="switchView('portfolio')" id="nav-portfolio" class="nav-btn text-xs font-medium px-3.5 sm:px-5 py-2 rounded-xl border border-transparent text-slate-300 hover:text-white transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-xs"></i>
+                        <span>Portfolio</span>
+                    </button>
+                    <button onclick="switchView('socials')" id="nav-socials" class="nav-btn text-xs font-medium px-3.5 sm:px-5 py-2 rounded-xl border border-transparent text-slate-300 hover:text-white transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-share-nodes text-xs"></i>
+                        <span>Socials</span>
+                    </button>
+                </nav>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT HUB -->
+    <main class="relative z-10 pt-28 pb-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 w-full">
+
+        <!-- ================= VIEW 1: ABOUT ================= -->
+        <section id="view-about" class="view-section active-view space-y-16 py-6">
+            
+            <!-- Hero Spotlight -->
+            <div class="flex flex-col items-center text-center max-w-3xl mx-auto pt-6">
+                
+                <!-- Location Badge -->
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-panel border border-brand-400/30 text-brand-400 text-xs font-mono font-medium mb-8 shadow-lg shadow-brand-400/5">
+                    <span class="flex h-2 w-2 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-400"></span>
+                    </span>
+                    <span>Northern Ireland Digital Collective</span>
+                </div>
+
+                <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+                    Custom Web Apps, Games & <span class="gradient-text">Digital Tools</span>.
+                </h1>
+
+                <p class="text-slate-300 text-base sm:text-lg font-light leading-relaxed mb-10 max-w-2xl">
+                    <strong class="text-white font-semibold">NorthernServices</strong> is an independent digital studio based in Northern Ireland. We conceptualize, design, and engineer bespoke software solutions ranging from high-performance web applications to specialized internal tools and interactive games.
+                </p>
+
+                <!-- Quick Action Buttons -->
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <button onclick="switchView('portfolio')" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-teal text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-brand-400/20 hover:shadow-brand-400/40 hover:-translate-y-0.5 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-grid-2 text-xs"></i> View All Projects
+                    </button>
+                    <button onclick="switchView('socials')" class="px-6 py-3.5 rounded-xl glass-card text-slate-200 hover:text-white text-xs font-semibold hover:bg-slate-800/80 transition-all flex items-center gap-2 border border-slate-700">
+                        <i class="fa-solid fa-hashtag text-xs text-brand-400"></i> Social Profiles
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Focus Pillars Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
+                
+                <div class="glass-card p-6 rounded-2xl space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-brand-400/10 border border-brand-400/30 flex items-center justify-center text-brand-400 text-xl">
+                        <i class="fa-solid fa-laptop-code"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Custom Web Applications</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Responsive, lightweight, and modern software tailored for real-time leaderboards, data dashboards, and interactive user platforms.
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan text-xl">
+                        <i class="fa-solid fa-gamepad"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Interactive Web Games</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Browser-first gaming experiences utilizing canvas physics, WebGL visual engines, and zero-install client architecture.
+                    </p>
+                </div>
+
+                <div class="glass-card p-6 rounded-2xl space-y-3">
+                    <div class="w-12 h-12 rounded-xl bg-teal-400/10 border border-teal-400/30 flex items-center justify-center text-teal-400 text-xl">
+                        <i class="fa-solid fa-gears"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Digital Tools & Utilities</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Internal build automation systems, API integrations, data aggregators, and micro-utilities optimized for regional creators.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Tech Stack & Capabilities -->
+            <div class="glass-card p-8 rounded-2xl space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Studio Technology Stack</h3>
+                        <p class="text-xs text-slate-400 mt-1">Core technologies powering our public applications and private systems.</p>
+                    </div>
+                    <span class="text-xs font-mono px-3 py-1 rounded-md bg-slate-800 text-brand-400 border border-slate-700">
+                        // Modern Web First
+                    </span>
+                </div>
+
+                <div class="flex flex-wrap gap-2.5">
+                    <span class="px-3.5 py-1.5 rounded-lg bg-slate-900/90 text-slate-200 border border-slate-800 text-xs font-mono flex items-center gap-2">
+                        <i class="fa-brands fa-react text-cyan-400"></i> React / Next.js
+                    </span>
+                    <span class="px-3.5 py-1.5 rounded-lg bg-slate-900/90 text-slate-200 border border-slate-800 text-xs font-mono flex items-center gap-2">
+                        <i class="fa-brands fa-js text-yellow-400"></i> JavaScript ES6+
+                    </span>
+                    <span class="px-3.5 py-1.5 rounded-lg bg-slate-900/90 text-slate-200 border border-slate-800 text-xs font-mono flex items-center gap-2">
+                        <i class="fa-brands fa-python text-blue-400"></i> Python Systems
+                    </span>
+                    <span class="px-3.5 py-1.5 rounded-lg bg-slate-900/90 text-slate-200 border border-slate-800 text-xs font-mono flex items-center gap-2">
+                        <i class="fa-solid fa-wind text-teal-400"></i> Tailwind CSS
+                    </span>
+                    <span class="px-3.5 py-1.5 rounded-lg bg-slate-900/90 text-slate-200 border border-slate-800 text-xs font-mono flex items-center gap-2">
+                        <i class="fa-solid fa-cube text-purple-400"></i> Canvas & WebGL
+                    </span>
+                    <span class="px-3.5 py-1.5 rounded-lg bg-slate-900/90 text-slate-200 border border-slate-800 text-xs font-mono flex items-center gap-2">
+                        <i class="fa-solid fa-database text-emerald-400"></i> Real-Time DBs
+                    </span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ================= VIEW 2: DEDICATED PORTFOLIO / PROJECTS PAGE ================= -->
+        <section id="view-portfolio" class="view-section space-y-8 py-4">
+            
+            <!-- Page Header -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-800 pb-6">
+                <div>
+                    <div class="text-xs font-mono tracking-widest text-brand-400 uppercase mb-2">// Full Showcase</div>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Portfolio & Projects</h2>
+                    <p class="text-slate-400 text-xs sm:text-sm mt-1">Explore the public projects, client apps, and digital tools we've shipped.</p>
+                </div>
+
+                <!-- Stats summary -->
+                <div class="flex items-center gap-4 text-xs font-mono">
+                    <div class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800">
+                        <span class="text-slate-400">Total:</span> <span class="text-white font-bold" id="stat-total">0</span>
+                    </div>
+                    <div class="px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-400">
+                        <span>Public:</span> <span class="font-bold" id="stat-public-count">0</span>
+                    </div>
+                    <div class="px-3 py-1.5 rounded-lg bg-amber-950/40 border border-amber-500/30 text-amber-400">
+                        <span>Private:</span> <span class="font-bold" id="stat-private-count">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls: Filter Tabs & Keyword Search Bar -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                
+                <!-- Category Filter Switcher -->
+                <div class="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-xl border border-slate-800 overflow-x-auto">
+                    <button onclick="filterProjects('all')" data-filter="all" class="filter-tab active-filter text-xs font-medium px-4 py-2 rounded-lg border border-transparent text-slate-300 hover:text-white transition-all whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-border-all text-[10px]"></i> All Projects
+                    </button>
+                    <button onclick="filterProjects('Web App')" data-filter="Web App" class="filter-tab text-xs font-medium px-4 py-2 rounded-lg border border-transparent text-slate-300 hover:text-white transition-all whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-laptop-code text-[10px]"></i> Web Apps
+                    </button>
+                    <button onclick="filterProjects('Game')" data-filter="Game" class="filter-tab text-xs font-medium px-4 py-2 rounded-lg border border-transparent text-slate-300 hover:text-white transition-all whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-gamepad text-[10px]"></i> Games
+                    </button>
+                    <button onclick="filterProjects('Digital Tool')" data-filter="Digital Tool" class="filter-tab text-xs font-medium px-4 py-2 rounded-lg border border-transparent text-slate-300 hover:text-white transition-all whitespace-nowrap flex items-center gap-1.5">
+                        <i class="fa-solid fa-gears text-[10px]"></i> Tools
+                    </button>
+                </div>
+
+                <!-- Live Search Box -->
+                <div class="relative min-w-[240px]">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" id="project-search" oninput="handleSearch()" placeholder="Search projects..." class="w-full bg-slate-900/90 text-white placeholder-slate-500 text-xs rounded-xl pl-9 pr-4 py-2.5 border border-slate-800 focus:outline-none focus:border-brand-400 transition-colors">
+                </div>
+
+            </div>
+
+            <!-- PROJECTS SHOWCASE GRID -->
+            <div class="grid grid-cols-1 gap-6 pt-2" id="projects-grid">
+                <!-- Public projects are rendered here from the admin CMS -->
+            </div>
+
+            <!-- Empty Search State -->
+            <div id="no-results" class="hidden text-center py-12 glass-card rounded-2xl">
+                <i class="fa-solid fa-folder-open text-3xl text-slate-600 mb-3"></i>
+                <p class="text-sm font-bold text-white" id="no-results-title">No projects found</p>
+                <p class="text-xs text-slate-400 mt-1" id="no-results-text">Try resetting your filter tabs or adjusting your search term.</p>
+            </div>
+
+        </section>
+
+        <!-- ================= VIEW 3: SOCIALS ================= -->
+        <section id="view-socials" class="view-section space-y-8 py-6">
+            
+            <div class="text-center max-w-xl mx-auto">
+                <div class="text-xs font-mono tracking-widest text-brand-400 uppercase mb-2">// Digital Presence</div>
+                <h2 class="text-3xl font-extrabold text-white tracking-tight">Connect & Follow</h2>
+                <p class="text-slate-400 text-xs sm:text-sm mt-2">Stay updated with active development, screenshots, release logs, and source repositories.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto pt-4">
+                
+                <!-- Instagram Card -->
+                <a href="https://instagram.com/northern.services" target="_blank" rel="noopener" class="glass-card p-6 rounded-2xl border border-slate-800 hover:border-pink-500/40 group transition-all flex items-center gap-5">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-yellow-500 via-pink-500 to-purple-600 p-0.5 shadow-lg group-hover:scale-105 transition-transform flex-shrink-0">
+                        <div class="w-full h-full bg-darkbg rounded-[14px] flex items-center justify-center text-xl text-white">
+                            <i class="fa-brands fa-instagram"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-xs font-mono text-pink-400 mb-0.5">Instagram Account</div>
+                        <div class="text-lg font-bold text-white truncate">@northern.services</div>
+                        <div class="text-xs text-slate-400 truncate mt-1">Visual updates, previews & studio logs</div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-pink-400 transition-colors text-sm pr-2"></i>
+                </a>
+
+                <!-- GitHub Card -->
+                <a href="https://github.com/NorthernServices" target="_blank" rel="noopener" class="glass-card p-6 rounded-2xl border border-slate-800 hover:border-white/40 group transition-all flex items-center gap-5 relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-2xl bg-slate-700 p-0.5 shadow-lg group-hover:scale-105 transition-transform flex-shrink-0">
+                        <div class="w-full h-full bg-darkbg rounded-[14px] flex items-center justify-center text-2xl text-white">
+                            <i class="fa-brands fa-github"></i>
+                        </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-xs font-mono text-slate-300">GitHub Organization</span>
+                            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-brand-400/20 text-brand-400 border border-brand-400/30">Active</span>
+                        </div>
+                        <div class="text-lg font-bold text-white truncate">@NorthernServices</div>
+                        <div class="text-xs text-slate-400 truncate mt-1">Codebases, open tools & repositories</div>
+                    </div>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-white transition-colors text-sm pr-2"></i>
+                </a>
+
+            </div>
+
+            <!-- Northern Ireland Regional Note -->
+            <div class="glass-card p-6 rounded-2xl max-w-xl mx-auto text-center border border-slate-800">
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Based in <strong class="text-white">Northern Ireland</strong>. Built for fast web performance across all platforms.
+                </p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="relative z-10 border-t border-slate-800/80 py-8 bg-slate-950/80 text-xs text-slate-400">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-brand-400"></span>
+                <span class="text-white font-medium">NorthernServices</span>
+                <span class="text-slate-500">•</span>
+                <span class="text-slate-400">Northern Ireland</span>
+            </div>
+            <div class="font-mono text-[11px] text-slate-400">
+                &copy; <span id="year">2026</span> NorthernServices.
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE ENGINE & ANIMATED CANVAS SCRIPT -->
+    <script>
+        // Set dynamic copyright year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Single-Page View Switcher Logic
+        function switchView(viewId) {
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(view => {
+                view.classList.remove('active-view');
+            });
+
+            // Deactivate all nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected view
+            const targetView = document.getElementById(`view-${viewId}`);
+            if (targetView) {
+                targetView.classList.add('active-view');
+            }
+
+            // Activate corresponding button
+            const targetBtn = document.getElementById(`nav-${viewId}`);
+            if (targetBtn) {
+                targetBtn.classList.add('active');
+            }
+
+            // Scroll smoothly to top of main container
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ====================================================================
+        // PORTFOLIO: LOADED LIVE FROM THE ADMIN CMS API
+        // ====================================================================
+        const PORTFOLIO_ENDPOINT = '/api/admin/projects/public';
+
+        let currentFilter = 'all';
+        let portfolioProjects = [];
+
+        const CATEGORY_META = {
+            'Web App': {
+                label: 'Web Application',
+                icon: 'fa-laptop-code',
+                iconClass: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+            },
+            'Game': {
+                label: 'Web Game',
+                icon: 'fa-gamepad',
+                iconClass: 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400'
+            },
+            'Digital Tool': {
+                label: 'Digital Tool',
+                icon: 'fa-gears',
+                iconClass: 'bg-teal-500/10 border-teal-500/30 text-teal-400'
+            }
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function safeUrl(value) {
+            try {
+                const url = new URL(String(value));
+                return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : '';
+            } catch {
+                return '';
+            }
+        }
+
+        function normalizeTags(tags) {
+            if (Array.isArray(tags)) {
+                return tags.map(tag => String(tag).trim()).filter(Boolean);
+            }
+
+            if (typeof tags === 'string') {
+                try {
+                    const parsed = JSON.parse(tags);
+                    if (Array.isArray(parsed)) return normalizeTags(parsed);
+                } catch {
+                    // Not JSON, fall through to comma separated parsing
+                }
+                return tags.split(',').map(tag => tag.trim()).filter(Boolean);
+            }
+
+            return [];
+        }
+
+        function categoryKey(category) {
+            const value = String(category || '').toLowerCase();
+            if (value.includes('game')) return 'Game';
+            if (value.includes('tool')) return 'Digital Tool';
+            if (value.includes('app')) return 'Web App';
+            return category || 'Web App';
+        }
+
+        async function loadPortfolio() {
+            const grid = document.getElementById('projects-grid');
+
+            try {
+                const res = await fetch(PORTFOLIO_ENDPOINT);
+                if (!res.ok) throw new Error(`Request failed with status ${res.status}`);
+
+                const data = await res.json();
+                portfolioProjects = Array.isArray(data)
+                    ? data.filter(project => project && project.name)
+                    : [];
+
+                renderPortfolio();
+            } catch (err) {
+                console.error('Failed to load portfolio:', err);
+                portfolioProjects = [];
+                grid.innerHTML = `
+                    <div class="glass-card p-8 rounded-2xl border border-rose-500/30 text-center">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl text-rose-400 mb-3"></i>
+                        <p class="text-sm font-bold text-white">Unable to load projects</p>
+                        <p class="text-xs text-slate-400 mt-1">Please refresh the page or check back shortly.</p>
+                    </div>
+                `;
+                document.getElementById('stat-total').textContent = '0';
+                document.getElementById('stat-public-count').textContent = '0';
+                document.getElementById('stat-private-count').textContent = '0';
+                document.getElementById('no-results').classList.add('hidden');
+            }
+        }
+
+        function renderPortfolio() {
+            const grid = document.getElementById('projects-grid');
+            const total = portfolioProjects.length;
+            const publicCount = portfolioProjects.filter(project => project.visibility !== 'private').length;
+            const privateCount = total - publicCount;
+
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-public-count').textContent = publicCount;
+            document.getElementById('stat-private-count').textContent = privateCount;
+
+            grid.innerHTML = portfolioProjects.map(projectCard).join('');
+
+            updateNoResultsMessage();
+            applyFilterAndSearch();
+        }
+
+        function projectCard(project) {
+            const key = categoryKey(project.category);
+            const meta = CATEGORY_META[key] || CATEGORY_META['Web App'];
+            const tags = normalizeTags(project.tags);
+            const url = safeUrl(project.url);
+            const status = project.status || (project.visibility === 'private' ? 'Private / Internal' : 'Live & Public');
+            const isLive = /live|public/i.test(status) && !/private|internal/i.test(status);
+            const badgeClass = isLive
+                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
+                : 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30';
+            const keywords = [project.name, meta.label, project.desc, status, ...tags].join(' ').toLowerCase();
+
+            return `
+                <div class="project-item glass-card p-6 sm:p-8 rounded-2xl border border-slate-800 relative overflow-hidden group" data-category="${escapeHtml(key)}" data-keywords="${escapeHtml(keywords)}">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+
+                        <div class="space-y-3 flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <span class="text-[10px] font-mono px-3 py-1 rounded-full ${badgeClass} flex items-center gap-1.5 font-semibold">
+                                    ${isLive
+                                        ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>'
+                                        : '<i class="fa-solid fa-code text-[10px]"></i>'}
+                                    ${escapeHtml(status)}
+                                </span>
+                                <span class="text-[10px] font-mono text-slate-400 uppercase tracking-wider">${escapeHtml(meta.label)}</span>
+                            </div>
+
+                            <div class="flex items-center gap-3 pt-1 min-w-0">
+                                <div class="w-10 h-10 rounded-xl border flex items-center justify-center text-lg shrink-0 ${meta.iconClass}">
+                                    <i class="fa-solid ${meta.icon}"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="text-xl sm:text-2xl font-bold text-white group-hover:text-brand-400 transition-colors">${escapeHtml(project.name)}</h3>
+                                    ${url ? `<p class="text-xs font-mono text-brand-400 truncate">${escapeHtml(url.replace(/^https?:\/\//, ''))}</p>` : ''}
+                                </div>
+                            </div>
+
+                            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">${escapeHtml(project.desc)}</p>
+
+                            ${tags.length ? `
+                                <div class="flex flex-wrap gap-2 pt-1">
+                                    ${tags.map(tag => `<span class="text-[10px] font-mono px-2.5 py-1 rounded-md bg-slate-900/80 text-slate-300 border border-slate-800">${escapeHtml(tag)}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="flex flex-col justify-center items-stretch lg:items-end min-w-[200px] shrink-0">
+                            ${url ? `
+                                <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-brand-teal text-slate-950 font-bold text-xs uppercase tracking-wider text-center shadow-lg shadow-brand-400/20 hover:shadow-brand-400/40 hover:scale-105 transition-all flex items-center justify-center gap-2">
+                                    <span>Launch Project</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                                </a>
+                                <span class="text-[10px] font-mono text-slate-400 text-center mt-2">Active Production URL</span>
+                            ` : `
+                                <span class="text-xs font-mono text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800 text-center">
+                                    <i class="fa-solid fa-circle-info mr-1"></i> Details coming soon
+                                </span>
+                            `}
+                        </div>
+
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateNoResultsMessage() {
+            const title = document.getElementById('no-results-title');
+            const text = document.getElementById('no-results-text');
+
+            if (!title || !text) return;
+
+            if (portfolioProjects.length === 0) {
+                title.textContent = 'No public projects yet';
+                text.textContent = 'Projects added in the admin panel will appear here.';
+            } else {
+                title.textContent = 'No projects found';
+                text.textContent = 'Try resetting your filter tabs or adjusting your search term.';
+            }
+        }
+
+        // Project Filter Logic (Portfolio Page)
+        function filterProjects(category) {
+            currentFilter = category;
+
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.classList.toggle('active-filter', tab.dataset.filter === category);
+            });
+
+            applyFilterAndSearch();
+        }
+
+        function handleSearch() {
+            applyFilterAndSearch();
+        }
+
+        function applyFilterAndSearch() {
+            const query = document.getElementById('project-search').value.toLowerCase().trim();
+            const projectItems = document.querySelectorAll('.project-item');
+            let visibleCount = 0;
+
+            projectItems.forEach(item => {
+                const itemCategory = item.getAttribute('data-category');
+                const itemKeywords = (item.getAttribute('data-keywords') || '').toLowerCase();
+
+                const matchesFilter = (currentFilter === 'all') || (itemCategory === currentFilter);
+                const matchesSearch = query === '' || itemKeywords.includes(query);
+
+                if (matchesFilter && matchesSearch) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Handle no results banner
+            const noResults = document.getElementById('no-results');
+            if (visibleCount === 0) {
+                updateNoResultsMessage();
+                noResults.classList.remove('hidden');
+            } else {
+                noResults.classList.add('hidden');
+            }
+        }
+
+        // ====================================================================
+        // INTERACTIVE CANVAS BACKGROUND: AURORA MESH & PARTICLES
+        // ====================================================================
+        const canvas = document.getElementById('aurora-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height;
+        let mouse = { x: null, y: null };
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // Ambient Glowing Blobs
+        class AuroraBlob {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.radius = Math.random() * 120 + 60;
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = (Math.random() - 0.5) * 0.3;
+                const colors = [
+                    'rgba(0, 230, 153, 0.08)',  // Emerald
+                    'rgba(20, 184, 166, 0.07)',  // Teal
+                    'rgba(0, 210, 255, 0.06)'   // Cyan
+                ];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < -150 || this.x > width + 150 || this.y < -150 || this.y > height + 150) {
+                    this.reset();
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+                gradient.addColorStop(0, this.color);
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // Glowing Star Nodes
+        class StarNode {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.size = Math.random() * 1.5 + 0.5;
+                this.alpha = Math.random() * 0.5 + 0.2;
+                this.speed = Math.random() * 0.02 + 0.005;
+            }
+            update() {
+                this.alpha += Math.sin(Date.now() * this.speed) * 0.008;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.max(0.1, Math.min(0.7, this.alpha))})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        const blobs = Array.from({ length: 16 }, () => new AuroraBlob());
+        const stars = Array.from({ length: 50 }, () => new StarNode());
+
+        let timeStep = 0;
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+
+            timeStep += 0.006;
+
+            // 1. Draw Flowing Sinusoidal Mesh Waves
+            ctx.save();
+            ctx.lineWidth = 1.2;
+
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath();
+                const waveColors = [
+                    'rgba(0, 230, 153, 0.06)',
+                    'rgba(20, 184, 166, 0.05)',
+                    'rgba(0, 210, 255, 0.04)'
+                ];
+                ctx.strokeStyle = waveColors[i];
+
+                for (let x = 0; x <= width; x += 35) {
+                    const y = Math.sin(x * 0.0025 + timeStep + i) * 70 + 
+                              Math.cos(x * 0.0018 + timeStep * 0.7) * 45 + 
+                              (height * 0.35 + (i * 140));
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // 2. Draw Soft Aurora Blobs
+            blobs.forEach(blob => {
+                blob.update();
+                blob.draw();
+            });
+
+            // 3. Draw Stars
+            stars.forEach(star => {
+                star.update();
+                star.draw();
+            });
+
+            requestAnimationFrame(animateCanvas);
+        }
+
+        window.onload = function() {
+            animateCanvas();
+        };
+
+        // Fetch the live portfolio from the admin CMS
+        loadPortfolio();
+    </script>
+</body>
+</html>
