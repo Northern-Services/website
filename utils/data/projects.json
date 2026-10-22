@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": "proj_1792685357804",
+    "name": "Earlybirds Society Scorer",
+    "category": "Web App",
+    "visibility": "public",
+    "desc": "Earlybirds Society Scorer is a digital platform and mobile companion application. It provides live Stableford scoring, automated handicap adjustments (WHS & society handicaps), 2’s club dividend tracking, competition management, and digital scorecard generation",
+    "url": "",
+    "status": "Private / Internal",
+    "tags": [
+      "Nuxt.js",
+      "SQLite"
+    ],
+    "createdAt": "2026-10-22T16:09:17.804Z"
+  }
+]
